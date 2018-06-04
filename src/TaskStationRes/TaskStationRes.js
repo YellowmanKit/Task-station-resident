@@ -1,9 +1,8 @@
 import React, { Component } from 'react';
 import Content from './Content/Content';
-
 //const loginServer = 'http://10.0.48.21:8004/api/';
 //const apiServer = 'http://10.0.48.21:8009/api/';
-const apiServer = 'http://13.229.71.2:8001/endpoint/';
+//const apiServer = 'http://13.229.71.2:8001/endpoint/';
 
 class TaskStationRes extends Component {
 
@@ -20,7 +19,7 @@ class TaskStationRes extends Component {
   }
 
   getApi(){
-    return apiServer;
+    return process.env.REACT_APP_API;
   }
 
   render() {

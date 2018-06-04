@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import axios from 'axios';
+
 import background from '../Images/background.jpg';
 import background2 from '../Images/background2.jpg';
 import background3 from '../Images/background3.jpg';
@@ -12,6 +13,7 @@ import hint_missionAccepted from '../Images/hint_missionAccepted.png';
 import nfcEntryHint from '../Images/nfcEntryHint.png';
 
 import Home from './Home';
+import HintAudio from '../Items/HintAudio';
 import HowToUpgrade from './HowToUpgrade';
 import ScoreRecord from './ScoreRecord';
 
@@ -27,11 +29,37 @@ class Content extends Component {
       profile:{},
       assignments: {},
       currentAssignment: {},
+      audio:'',
+      audioUrl:'',
+
       contentFunctions:{
         setPage: this.setPage.bind(this),
-        taskAccepted: this.taskAccepted.bind(this)
+        taskAccepted: this.taskAccepted.bind(this),
+        afterAcceptedTask: this.afterAcceptedTask.bind(this),
+        playAudio: this.playAudio.bind(this),
+        playAudioByUrl: this.playAudioByUrl.bind(this),
+        audioFinished: this.audioFinished.bind(this)
       }
     };
+  }
+
+  playAudio(_audio){
+    this.setState({
+      audio: _audio
+    });
+  }
+
+  playAudioByUrl(_audioUrl){
+    this.setState({
+      audioUrl: _audioUrl
+    });
+  }
+
+  audioFinished(){
+    this.setState({
+      audio: '',
+      audioUrl: ''
+    });
   }
 
   async taskAccepted(){
@@ -39,6 +67,10 @@ class Content extends Component {
     console.log(playTaskApi);
     var playTask = await axios.get(playTaskApi);
     console.log(playTask.data);
+    this.afterAcceptedTask();
+  }
+
+  afterAcceptedTask(){
     this.setPage('taskAccepted');
     setTimeout(()=>{this.setPage('entry')},5000);
   }
@@ -71,8 +103,10 @@ class Content extends Component {
   }
 
   entryButtonPressed(){
-    this.setPage('entryNfc');
-    setTimeout(()=>{this.switchPageOnSituation('entryNfc','entry')},5000);
+    const page = 'entryNfc';
+    this.playAudio(page);
+    this.setPage(page);
+    setTimeout(()=>{this.switchPageOnSituation('entryNfc','entry')},10000);
   }
 
   switchPageOnSituation(situation,destination){
@@ -90,7 +124,7 @@ class Content extends Component {
     console.log(nfcId)
     document.getElementById('nfcInput').value = '';
     //nfcId = '53B5804D00F680';
-    const ernestapi = "http://10.0.48.22/EHMS/api/getResBedPrfl/";
+    const ernestapi = process.env.REACT_APP_ERNEST + "getResBedPrfl/";
     var prfl = await axios.get(ernestapi + nfcId);
     var _profile = prfl.data.ResBedPrfl[0];
     console.log(_profile);
@@ -108,9 +142,9 @@ class Content extends Component {
       return;
     }
 
-
     const assignmentApi = this.props.mainFunctions.getApi() + 'resident/task/assignment/' + resId;
     let _assignments = await axios.get(assignmentApi);
+    console.log(_assignments.data);
     if(_assignments.data.error){
       //document.getElementById('nfcInput').value = ''
       return;
@@ -127,11 +161,10 @@ class Content extends Component {
       assignments: _assignments.data,
       currentAssignment: _currentAssignment
     });
-    console.log(this.state.assignments);
     //console.log(this.state.currentAssignment);
-
+    this.playAudio('howToEarnScore');
     this.setPage('howToEarnScore');
-    setTimeout(()=>{this.switchPageOnSituation('howToEarnScore','home')},5000);
+    setTimeout(()=>{this.switchPageOnSituation('howToEarnScore','home')},7000);
   }
 
   render() {
@@ -183,7 +216,7 @@ class Content extends Component {
       cursor: 'pointer',
       color: 'transparent',
       fontColor: 'transparent'
-    }}type='text' autoFocus onChange={this.onNfcInputChange.bind(this)} id='nfcInput' spellcheck="false"/>:
+    }}type='text' autoFocus onChange={this.onNfcInputChange.bind(this)} id='nfcInput' spellCheck="false"/>:
     this.state.onPage === 'pleaseContactNurse'?
     <div style={{
       height: this.getHeight() * 0.6,
@@ -194,14 +227,15 @@ class Content extends Component {
       cursor: 'pointer'
     }}/>:
     this.state.onPage === 'taskAccepted'?
-    <div style={{
+    <button style={{
       height: this.getHeight() * 0.6,
       width: this.getHeight() * 0.6,
+      border: 'none',
       backgroundImage: 'url(' + hint_missionAccepted + ')',
       backgroundSize: 'contain',
       backgroundColor: 'transparent',
       cursor: 'pointer'
-    }}/>:
+    }} onClick={()=>{this.setPage('entry')}}/>:
     this.state.onPage === 'howToEarnScore'?
     <button style={{
       height: this.getHeight() * 0.6,
@@ -233,8 +267,16 @@ class Content extends Component {
     mainFunctions={this.props.mainFunctions}/>:
     <div/>;
 
+    let audio =
+    <HintAudio
+    audio={this.state.audio}
+    audioUrl={this.state.audioUrl}
+    contentFunctions={this.state.contentFunctions} />
+
+
     return (
       <div style={containerStyle}>
+        {audio}
         {subcontent}
       </div>
     );

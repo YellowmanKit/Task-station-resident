@@ -40,27 +40,44 @@ class Home extends Component {
 
   setCurrentStatus(){
     var _currentStatus = '';
+    var audioToPlay='';
+    var status='';
+
     for(var i=0;i<3;i++){
       if(!this.props.assignments[i].played){
         _currentStatus = 'taskToBeAccept';
+        this.playAudioOfCurrentTask();
         break;
       }
       if(this.props.assignments[i].played && !this.props.assignments[i].complete){
         _currentStatus = 'taskOnGoing';
+        this.playAudioOfCurrentTask();
         break;
       }
       if(i === 2){
-        _currentStatus = 'stampEarned';
+        status= 'stampEarned'
+        _currentStatus = status;
+        audioToPlay= status;
         break;
       }
       if(this.props.assignments[i].complete && !this.props.assignments[i + 1].played){
-        _currentStatus = 'lastTaskCompleted';
+        status= 'lastTaskCompleted'
+        _currentStatus = status;
+        audioToPlay= status;
         break;
       }
     }
+    this.props.contentFunctions.playAudio(audioToPlay);
     this.setState({
       currentStatus: _currentStatus
-    })
+    });
+  }
+
+  playAudioOfCurrentTask(){
+    //console.log( this.props.currentAssignment)
+    this.props.contentFunctions.playAudioByUrl(
+      this.props.currentAssignment.selectTask.task.taskSoundPath
+    )
   }
 
   async fetchPreformance(){
@@ -102,7 +119,7 @@ class Home extends Component {
   }
 
   midButtonPressed(){
-    //console.log('midButtonPressed');
+    console.log('midButtonPressed: ' + this.state.currentStatus);
     if(this.state.currentStatus === 'allTasksCompleted'){
       window.location.reload();
     }else if(this.state.currentStatus === 'lastTaskCompleted'){
@@ -110,8 +127,9 @@ class Home extends Component {
         currentStatus: 'taskToBeAccept'
       });
     }else if(this.state.currentStatus === 'taskToBeAccept'){
-      //Accept task
       this.props.contentFunctions.taskAccepted();
+    }else if(this.state.currentStatus === 'taskOnGoing'){
+      this.props.contentFunctions.afterAcceptedTask();
     }
   }
 
