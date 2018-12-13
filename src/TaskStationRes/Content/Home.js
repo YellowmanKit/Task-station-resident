@@ -35,21 +35,27 @@ class Home extends Component {
 
   initHome(){
     this.fetchPreformance();
-    this.setCurrentStatus();
+    this.setCurrentStatus(this.props);
   }
 
-  setCurrentStatus(){
+  setCurrentStatus(props){
     var _currentStatus = '';
     var audioToPlay='';
     var status='';
 
+    console.log(props.assignments);
+
     for(var i=0;i<3;i++){
-      if(!this.props.assignments[i].played){
+      /*status= 'lastTaskCompleted'
+      _currentStatus = status;
+      audioToPlay= status;
+      break;*/
+      if(!props.assignments[i].played){
         _currentStatus = 'taskToBeAccept';
         this.playAudioOfCurrentTask();
         break;
       }
-      if(this.props.assignments[i].played && !this.props.assignments[i].complete){
+      if(props.assignments[i].played && !this.props.assignments[i].complete){
         _currentStatus = 'taskOnGoing';
         this.playAudioOfCurrentTask();
         break;
@@ -60,21 +66,22 @@ class Home extends Component {
         audioToPlay= status;
         break;
       }
-      if(this.props.assignments[i].complete && !this.props.assignments[i + 1].played){
+      if(props.assignments[i].complete && !this.props.assignments[i + 1].played){
         status= 'lastTaskCompleted'
         _currentStatus = status;
         audioToPlay= status;
         break;
       }
     }
-    this.props.contentFunctions.playAudio(audioToPlay);
+    props.contentFunctions.playAudio(audioToPlay);
     this.setState({
       currentStatus: _currentStatus
     });
+    console.log(_currentStatus);
   }
 
   playAudioOfCurrentTask(){
-    //console.log( this.props.currentAssignment)
+    console.log( this.props.currentAssignment)
     this.props.contentFunctions.playAudioByUrl(
       this.props.currentAssignment.selectTask.task.taskSoundPath
     )
@@ -115,7 +122,7 @@ class Home extends Component {
       loaded: true
     });
 
-    console.log(this.state)
+    //console.log(this.state)
   }
 
   midButtonPressed(){
@@ -126,6 +133,7 @@ class Home extends Component {
       this.setState({
         currentStatus: 'taskToBeAccept'
       });
+      this.playAudioOfCurrentTask();
     }else if(this.state.currentStatus === 'taskToBeAccept'){
       this.props.contentFunctions.taskAccepted();
     }else if(this.state.currentStatus === 'taskOnGoing'){
@@ -208,7 +216,6 @@ class Home extends Component {
 
     let lastSeasonScore = this.state.lastSeasonProfile.stamp;
     let thisSeasonScore = this.state.currentSeasonProfile.stamp;
-    let todayCompleted = this.getTodayCompletedCount();
 
     let midBtnImg =
     this.state.currentStatus === 'taskToBeAccept'? startMission:
@@ -240,7 +247,7 @@ class Home extends Component {
       </div>
       <div style={{flex: 18,display: 'flex'}}>
         <div style={Object.assign({},scoreTextStyle,{flex: 1,margin: '12% 3% 0% 0%',fontSize: this.props.height * 0.1,color: 'white'})}>
-          {todayCompleted}
+          {this.state.currentSeasonProfile.completeTask}
         </div>
       </div>
       <div style={{flex: 12}}>

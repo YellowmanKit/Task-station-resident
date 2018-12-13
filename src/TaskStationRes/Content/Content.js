@@ -50,6 +50,7 @@ class Content extends Component {
   }
 
   playAudioByUrl(_audioUrl){
+    //console.log(_audioUrl);
     this.setState({
       audioUrl: _audioUrl
     });
@@ -123,18 +124,19 @@ class Content extends Component {
     }
     console.log(nfcId)
     document.getElementById('nfcInput').value = '';
-    //nfcId = '53B5804D00F680';
+    //nfcId = '53c1e04300c900';
     const ernestapi = process.env.REACT_APP_ERNEST + "getResBedPrfl/";
     var prfl = await axios.get(ernestapi + nfcId);
     var _profile = prfl.data.ResBedPrfl[0];
     console.log(_profile);
+    if(!_profile){ return; }
 
     const resId = _profile.MemID;
     //const resId = 'JCH2018033';
     const profileApi = this.props.mainFunctions.getApi() + 'resident/' + resId;
     //console.log(profileApi)
     var residentProfile = await axios.get(profileApi);
-    //console.log(residentProfile.data);
+    console.log(residentProfile.data);
     var typeId = residentProfile.data.residentType.id;
     if(typeId === 0 || typeId === 4){
       this.setPage('pleaseContactNurse');
@@ -144,15 +146,18 @@ class Content extends Component {
 
     const assignmentApi = this.props.mainFunctions.getApi() + 'resident/task/assignment/' + resId;
     let _assignments = await axios.get(assignmentApi);
-    console.log(_assignments.data);
+    //console.log(_assignments.data);
     if(_assignments.data.error){
       //document.getElementById('nfcInput').value = ''
       return;
     }
     var _currentAssignment = {};
     for(var i=0;i<3;i++){
+      _currentAssignment = _assignments.data[i];
       if(!_assignments.data[i].played){
-        _currentAssignment = _assignments.data[i];
+        break;
+      }
+      if(_assignments.data[i].played && !_assignments.data[i].complete){
         break;
       }
     }
@@ -161,7 +166,8 @@ class Content extends Component {
       assignments: _assignments.data,
       currentAssignment: _currentAssignment
     });
-    //console.log(this.state.currentAssignment);
+    console.log('currentAssignment: ');
+    console.log(this.state.currentAssignment);
     this.playAudio('howToEarnScore');
     this.setPage('howToEarnScore');
     setTimeout(()=>{this.switchPageOnSituation('howToEarnScore','home')},7000);

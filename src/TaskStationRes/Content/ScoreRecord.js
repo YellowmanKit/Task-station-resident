@@ -169,6 +169,9 @@ class ScoreRecord extends Component {
           </div>
         </div>
         <div style={scorePrintContainerStyle}>
+          <div style={Object.assign({},textStyle,{textAlign: 'left',width: '100%', height: window.innerHeight * 0.15, fontSize: window.innerWidth * 0.04})}>
+            {'已完成任務: ' + this.state.currentSeasonProfile.completeTask}
+          </div>
           {this.renderScorePrint()}
         </div>
       </div>
